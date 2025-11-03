@@ -4,43 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login</title>
-     <link rel="stylesheet" href="driver.css">
+    <link rel="stylesheet" href="driver.css">
     <style>
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f5f5f5; }
-        .login-container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.2); width: 300px; }
-        input { width: 100%; padding: 10px; margin: 10px 0; }
-        button { width: 100%; padding: 10px; background: #007bff; color: #fff; border: none; cursor: pointer; }
-        button:hover { background: #0056b3; }
+        body { font-family: Arial; padding:50px; text-align:center; }
+        input { margin:10px; padding:8px; width:200px; }
+        button { padding:8px 15px; cursor:pointer; }
+        #error { color:red; }
     </style>
 </head>
 <body>
 
-<div class="login-container">
-    <h2>Admin Login</h2>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
-    <button id="loginBtn">Login</button>
-    <p id="errorMsg" style="color:red;"></p>
-</div>
+<h2>Admin Login</h2>
+<form id="loginForm">
+    <input type="text" id="username" placeholder="Username" required><br>
+    <input type="password" id="password" placeholder="Password" required><br>
+    <button type="submit">Login</button>
+</form>
+<p id="error"></p>
 
 <script>
-    const adminUser = "admin"; // hardcoded admin username
-    const adminPass = "admin123"; // hardcoded admin password
+    const API_URL = "http://localhost:8080/api/admins";
 
-    document.getElementById('loginBtn').addEventListener('click', () => {
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value.trim();
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-        if(username === adminUser && password === adminPass) {
-            sessionStorage.setItem('isAdmin', 'true'); // mark admin as logged in
-            window.location.href = "admin-dashboard.html"; // redirect to dashboard
-        } else {
-            document.getElementById('errorMsg').innerText = "Invalid username or password";
+        try {
+            const res = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            if(res.ok){
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                sessionStorage.setItem('adminUsername', username);
+                window.location.href = 'admin-dashboard.html';
+            } else {
+                const msg = await res.text();
+                document.getElementById('error').textContent = msg;
+            }
+        } catch(err) {
+            console.error(err);
+            document.getElementById('error').textContent = "Server error!";
         }
     });
 </script>
 
 </body>
 </html>
+
 
 
